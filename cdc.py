@@ -1,21 +1,25 @@
-#!/usr/bin/env python
-
-# make sure to install these packages before running:
-# pip install pandas
-# pip install sodapy
+#!python3
 
 import pandas as pd
 from sodapy import Socrata
 import csv, sqlite3
-import json
-import logging
+import datetime
 
 url = "data.cdc.gov"
 endpoint = "8xkx-amqh"
 
 def init_db():
-    db = sqlite3.connect('api.db')
+    db = sqlite3.connect('cdc.db')
     cursor = db.cursor()
+    tables = []
+
+    for row in cursor.execute("SELECT name FROM sqlite_master;"):
+        tables.append(row)
+    
+    # cdc table already exists in cdc.db
+    if tables:
+        return
+        
     sql_file = open("schema.sql")
     sql_script = sql_file.read()
     cursor.executescript(sql_script)
@@ -24,6 +28,10 @@ def init_db():
     db.close()
 
 def extract_data():
+
+    if cached():
+        return
+    
     client = Socrata(url, None)
     offset = 0
     chunk = 100
@@ -43,7 +51,7 @@ def extract_data():
     df.to_csv(r'./data.csv')
 
 def store():
-    db = sqlite3.connect('api.db')
+    db = sqlite3.connect('cdc.db')
     cursor = db.cursor()
 
     with open('data.csv', 'r') as csv_file:
@@ -57,3 +65,28 @@ def store():
     print('Data stored in cdc table.')
     db.commit()
     db.close()
+
+def cached():
+    cached = True
+    db = sqlite3.connect('cdc.db')
+    db.row_factory = sqlite3.Row
+    cursor = db.cursor()
+    cursor.execute("SELECT date FROM cdc LIMIT 1;")
+    result = [dict(row) for row in cursor.fetchall()]
+
+    if not result:
+        return (not cached)
+    else:
+        date = result[0]['date']
+        most_recent = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%f")
+        curr_time = datetime.datetime.now()
+
+        if (curr_time.date() - most_recent.date()).days <= 1:
+            return cached
+            
+    return (not cached)
+        
+if __name__ == '__main__':
+    init_db()
+    extract_data()
+    store()
