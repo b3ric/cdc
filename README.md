@@ -1,3 +1,5 @@
+Python wrapper for CDC API (https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-County/)
+
 ## Installation
 ```bash
 pip install pandas
