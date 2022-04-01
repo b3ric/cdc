@@ -25,15 +25,8 @@ def transform(arr):
         date = datetime.datetime.strptime(elem[0], format)
         if date == latest:
             clean.append(elem)
-    
-    for i in clean:
-        print(i)
-    
+ 
     return clean
 
 def load():
     pass
-
-if __name__ == '__main__':
-    arr = extract()
-    transform(arr)
