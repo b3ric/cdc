@@ -34,10 +34,10 @@ def extract_data():
     
     client = Socrata(url, None)
     offset = 0
-    chunk = 100000
+    chunk = 100
     results = []
-    #count = 200
-    count = client.get(endpoint, select="COUNT(*)")
+    count = 1000
+    #count = client.get(endpoint, select="COUNT(*)")
 
     while True:
 
@@ -51,8 +51,8 @@ def extract_data():
 
         offset += chunk
         print(offset, ' rows extracted.')
-        if (offset > int(count[0]['COUNT'])):
-        #if (offset > count):
+        #if (offset > int(count[0]['COUNT'])):
+        if (offset > count):
             break
 
     df = pd.DataFrame.from_records(results)
