@@ -19,16 +19,22 @@ def init_db():
         tables.append(row)
     
     if ('vax',) not in tables:
-        sql_file = open("vax.sql")
+        sql_file = open("sql/vax.sql")
         sql_script = sql_file.read()
         cursor.executescript(sql_script)
         print('vax table initialized')
     
     if ('cases',) not in tables:
-        sql_file = open("cases.sql")
+        sql_file = open("sql/cases.sql")
         sql_script = sql_file.read()
         cursor.executescript(sql_script)
         print('cases table initialized')
+    
+    if ('real_estate',) not in tables:
+        sql_file = open("sql/real_estate.sql")
+        sql_script = sql_file.read()
+        cursor.executescript(sql_script)
+        print('real estate table initialized')
     
     db.commit()
     db.close()
@@ -140,6 +146,28 @@ def store_cases():
 
     os.remove('cases.csv')
 
+
+def store_real_estate():
+    # ensure data is in the agreed format first 
+    # add speed bump here
+
+    db = sqlite3.connect('data.db')
+    cursor = db.cursor()
+
+    with open('static_data/real_estate.csv', 'r') as csv_file:
+        data = csv.DictReader(csv_file)
+        to_sql = [( i['date'], i['fips'], i['state_comp'], i['state_short'], i['median_listing_price'], i['median_change_pct'], i['median_days_on_market'], i['average_listing_price'], i['avg_price_change']) for i in data] 
+        cursor.executemany(
+            "INSERT INTO real_estate (date, fips, state_comp, state_short, median_listing_price, median_change_pct,median_days_on_market,average_listing_price,avg_price_change)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            , to_sql
+        )
+    print('Data stored in real estate table.')
+    db.commit()
+    db.close()
+     
+
+
 def is_cached(table):
     cached = True
     db = sqlite3.connect('data.db')
@@ -162,11 +190,3 @@ def is_cached(table):
             return cached
             
     return (not cached)
-
-
-if __name__ == '__main__':
-    init_db()
-    extract_vax()
-    store_vax()
-    extract_cases()
-    store_cases()
