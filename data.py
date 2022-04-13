@@ -1,5 +1,6 @@
 #!python3
 
+from imp import init_builtin
 import pandas as pd
 from scipy import where
 from sodapy import Socrata
@@ -13,31 +14,24 @@ def init_db():
     db = sqlite3.connect('data.db')
 
     cursor = db.cursor()
-    tables = []
+    rows = [] # better name for this!
+    tables = ['vax','cases','real_estate']
 
     for row in cursor.execute("SELECT name FROM sqlite_master;"):
-        tables.append(row)
+        rows.append(row)
     
-    if ('vax',) not in tables:
-        sql_file = open("sql/vax.sql")
-        sql_script = sql_file.read()
-        cursor.executescript(sql_script)
-        print('vax table initialized')
-    
-    if ('cases',) not in tables:
-        sql_file = open("sql/cases.sql")
-        sql_script = sql_file.read()
-        cursor.executescript(sql_script)
-        print('cases table initialized')
-    
-    if ('real_estate',) not in tables:
-        sql_file = open("sql/real_estate.sql")
-        sql_script = sql_file.read()
-        cursor.executescript(sql_script)
-        print('real estate table initialized')
+    for table in tables:
+        if (table,) not in rows:
+            sql_file = open("sql/%s.sql" % table)
+            sql_script = sql_file.read()
+            cursor.executescript(sql_script)
+            print('%s table initialized.' % table)
+        else:
+            print('%s table already exists.' % table)
     
     db.commit()
-    db.close()
+    db.close() 
+
 
 def extract_vax():
     url = "data.cdc.gov"
@@ -190,3 +184,6 @@ def is_cached(table):
             return cached
             
     return (not cached)
+
+if __name__ == '__main__':
+    init_db()
