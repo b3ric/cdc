@@ -13,8 +13,10 @@ import datetime
 from datetime import timedelta, date
 import requests
 import os
-
 from sqlalchemy import Table
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 def init_db():
     db = sqlite3.connect('data.db')
@@ -236,11 +238,32 @@ def table_exists(table):
         return True
     return False 
 
+def get_data():
+    db = sqlite3.connect('data.db')
+    db.row_factory = sqlite3.Row
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM cases c JOIN vax v ON c.fips = v.fips JOIN real_estate r ON r.fips = v.fips;")
+    result = [dict(row) for row in cursor.fetchall()]
+    db.close()
+    return result
+
 class TableNotInitialized(Exception):
     pass
 
 
-#if __name__ == '__main__':
-    #init_db()
-    #table_exists('vax')
-    #store_cases()
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.route('/api/data', methods=['GET'])
+def api_extract_cases():
+    return jsonify(get_data())
+
+
+if __name__ == "__main__":
+    init_db()
+    extract_cases()
+    extract_vax()
+    store_cases()
+    store_vax()
+    store_real_estate()
+    app.run()
