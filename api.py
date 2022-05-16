@@ -15,7 +15,7 @@ import requests
 import os
 from sqlalchemy import Table
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 
 def init_db():
@@ -100,6 +100,7 @@ def extract_vax():
             break
     
     df = pd.DataFrame.from_records(results)
+    print(df)
     df.to_csv(r'./vax.csv')
 
 def extract_cases():
@@ -254,16 +255,34 @@ class TableNotInitialized(Exception):
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return "Error: Database has not been initialized."
+
 @app.route('/api/data', methods=['GET'])
 def api_extract_cases():
+    tables = ['vax','cases','real_estate']
+
+    count = 0
+
+    for table in tables:
+        if not table_exists(table):
+            count += 1
+    
+    if count <= len(tables):
+        return redirect('/404')
+
     return jsonify(get_data())
 
 
 if __name__ == "__main__":
-    init_db()
-    extract_cases()
-    extract_vax()
-    store_cases()
-    store_vax()
-    store_real_estate()
+    #init_db()
+    #init_db()
+    #init_db()
+    
+    #extract_cases()
+    #extract_vax()
+    #store_cases()
+    #store_vax()
+    #store_real_estate()
     app.run()
