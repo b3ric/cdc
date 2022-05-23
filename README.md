@@ -2,7 +2,7 @@ Check TODO's if you want to contribute
 
 ## Overview
 
-The following functions are available: 
+The following functions are available :
 
 ```python
 def init_db():
