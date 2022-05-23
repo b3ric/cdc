@@ -245,6 +245,7 @@ def get_data():
     cursor = db.cursor()
     cursor.execute("SELECT * FROM cases c JOIN vax v ON c.fips = v.fips JOIN real_estate r ON r.fips = v.fips;")
     result = [dict(row) for row in cursor.fetchall()]
+    print(result)
     db.close()
     return result
 
@@ -276,13 +277,13 @@ def api_extract_cases():
 
 
 if __name__ == "__main__":
-    #init_db()
-    #init_db()
-    #init_db()
+    init_db()
+
     
-    #extract_cases()
-    #extract_vax()
-    #store_cases()
-    #store_vax()
-    #store_real_estate()
-    app.run()
+    extract_cases()
+    extract_vax()
+    store_cases()
+    store_vax()
+    store_real_estate()
+    get_data()
+    #app.run()
